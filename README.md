@@ -16,7 +16,7 @@ deactivate
 ```
 ## arnmap.py
 ```
-Class module where core functionality is defined. Includes an entry point and main method allowing it to be run directly.
+Class module. Includes an entry point and main method allowing it to be run directly.
 ```
 ## arnmap_helper.py
 ```
