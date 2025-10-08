@@ -14,6 +14,18 @@ pip install boto3
 pip list
 deactivate
 ```
+## arnmap.py
+```
+Class module where core functionality is defined. Includes an entry point and main method allowing it to be run directly.
+```
+## arnmap_helper.py
+```
+Helper module where resource specific methods are defined.
+```
+## arnmap_exec.py
+```
+Wrapper program to test importing the class module.
+```
 
 <!--
 **arnmap/arnmap** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
