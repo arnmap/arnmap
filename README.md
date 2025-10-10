@@ -2,9 +2,19 @@
 $ python3 arnmap.py
 usage: arnmap.py [-h] --arn [ARN ...]
 ```
-
+## arnmap.py
+```
+Class module. Includes an entry point and main method allowing it to be run directly.
+```
+## arnmap_helper.py
+```
+Helper module where resource specific methods are defined.
+```
+## arnmap_exec.py
+```
+Wrapper program to test importing the class module.
+```
 ## Python Installation and Virtual Environment Setup
-
 ```
 sudo apt update
 sudo apt install python3
@@ -19,19 +29,6 @@ pip install boto3
 pip list
 deactivate
 ```
-## arnmap.py
-```
-Class module. Includes an entry point and main method allowing it to be run directly.
-```
-## arnmap_helper.py
-```
-Helper module where resource specific methods are defined.
-```
-## arnmap_exec.py
-```
-Wrapper program to test importing the class module.
-```
-
 <!--
 **arnmap/arnmap** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
