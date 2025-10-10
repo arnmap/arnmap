@@ -1,3 +1,8 @@
+```
+$ python3 arnmap.py
+usage: arnmap.py [-h] --arn [ARN ...]
+```
+
 ## Python Installation and Virtual Environment Setup
 
 ```
