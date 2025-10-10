@@ -69,7 +69,7 @@ class ArnMap:
 			else:
 				
 				scan_output_str = (
-					"Method does not exist in arnmap_module.py or is not callable: " 
+					"Method does not exist in helper module or is not callable: " 
 					+ method_name
 				)				
 				
