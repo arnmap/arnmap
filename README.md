@@ -13,7 +13,7 @@ Class module. Includes an entry point and main method allowing it to be run dire
 ```
 ## arnmap_helper.py
 ```
-Helper module where resource specific methods are defined.
+Helper module where resource specific functions are defined.
 ```
 ## arnmap_exec.py
 ```
