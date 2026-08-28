@@ -13,7 +13,8 @@ class ArnMap:
 			'service': 2,
 			'region': 3,
 			'accountid': 4,
-			'resource': 5
+			'resource': 5,
+			'resourceid': 6
 		}
 
 	def scan(self, arn):
