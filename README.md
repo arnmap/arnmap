@@ -1,6 +1,11 @@
 ```
-$ python3 arnmap.py
+# Run as a package module
+$ python -m arnmap.arnmap
 usage: arnmap.py [-h] --arn [ARN ...]
+
+# Run using wrapper program
+$ python arnmap-exec.py
+usage: arnmap-exec.py [-h] --arn [ARN ...]
 ```
 ## arnmap.py
 ```
