@@ -84,8 +84,8 @@ class ArnMap:
 
 			scan_output_dict = {
 				'arn': arn,
-				'resource_status': resource_status,
-				'resource_internal_state': resource_internal_state,
+				'resource_status': 'UNKNOWN',
+				'resource_internal_state': 'UNKNOWN',
 				'scans': scans_list,
 				'scanner_status': str(
 					"Exception: "
