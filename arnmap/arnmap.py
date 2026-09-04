@@ -26,20 +26,23 @@ class ArnMap:
 			"scan_" 
 			+ str(arn_components_list[self.arn_structure_dict.get("service")])
 		)
-		
-		scan_data_str = ""
-		scan_output_str = ""
-				
+
+		resource_scan = []
+		scans_list = []
+		resource_internal_state = ""
+		resource_status = ""
+		scan_output_dict = {}
+
 		try:
 	
 			if hasattr(arnmap_helper, method_name) and callable(getattr(arnmap_helper, method_name)):
 				
 				resource_scan = getattr(arnmap_helper, method_name)(arn, arn_components_list, self.arn_structure_dict)
 				
-				scan_data_list = resource_scan[0]
+				scans_list = resource_scan[0]
 				resource_internal_state = resource_scan[1]
 				
-				if not scan_data_list:
+				if not scans_list:
 					
 					resource_status = "NOT_FOUND"
 					
@@ -55,38 +58,44 @@ class ArnMap:
 						+ "]"
 					)
 
-				for scan_data_dict in scan_data_list:
-					scan_data_str += str(scan_data_dict)
-					
-				scan_output_str = (
-					"arn: " 
-					+ arn 
-					+ "\n" 
-					+ "resource_status: " 
-					+ resource_status
-					+ "\n"
-					+ scan_data_str
-				)
+				scan_output_dict = {
+					'arn': arn,
+					'resource_status': resource_status,
+					'resource_internal_state': resource_internal_state,
+					'scans': scans_list,
+					'scanner_status': 'FINISHED'
+				}
 				
 			else:
-				
-				scan_output_str = (
-					"Method does not exist in helper module or is not callable: " 
-					+ method_name
-				)				
-				
-			return scan_output_str
+
+				scan_output_dict = {
+					'arn': arn,
+					'resource_status': 'UNKNOWN',
+					'resource_internal_state': 'UNKNOWN',
+					'scans': scans_list,
+					'scanner_status': str(
+						"ERROR: Method does not exist in helper module or is not callable: ("
+						+ method_name
+						+ ")"
+					)
+				}
 			
 		except Exception as e:
+
+			scan_output_dict = {
+				'arn': arn,
+				'resource_status': resource_status,
+				'resource_internal_state': resource_internal_state,
+				'scans': scans_list,
+				'scanner_status': str(
+					"Exception: "
+					+ type(e).__name__
+					+ " - "
+					+ str(e)
+				)
+			}
 			
-			scan_output_str = (
-				"Exception: " 
-				+ type(e).__name__ 
-				+ " - " 
-				+ str(e)
-			)
-			
-			return scan_output_str
+		return scan_output_dict
 
 
 	def __verify_arn(self, arn):
