@@ -25,7 +25,9 @@ def scanner_aws(service_name):
 			except ClientError as e:
 
 				error_code = e.response.get('Error', {}).get('Code', '')
-				if 'NotFound' in error_code or 'NoSuch' in error_code:
+
+				# if 'NotFound' in error_code or 'NoSuch' in error_code:
+				if any(error in error_code for error in ['NotFound', 'NoSuch', 'AccessDenied']):
 					return [], ""
 				raise e
 
@@ -56,7 +58,7 @@ def scan_dms(client, resource_type, resource_name, arn):
 		)
 
 		if not response_describe_replication_tasks:
-			return []
+			return [], ""
 		else:
 			replication_tasks_dict = response_describe_replication_tasks['ReplicationTasks'][0]
 			resource_dict = {'describe_replication_tasks': replication_tasks_dict}
@@ -64,10 +66,10 @@ def scan_dms(client, resource_type, resource_name, arn):
 			scan_data_list.append(resource_dict)
 
 	else:
-		return []
+		return [], ""
 
-	# list[list[dict], string]
-	return [scan_data_list, resource_internal_state]
+	# list[dict], string
+	return scan_data_list, resource_internal_state
 
 
 @scanner_aws('ec2')
@@ -87,7 +89,7 @@ def scan_ec2(client, resource_type, resource_name, arn):
 		)
 
 		if not response_describe_instances:
-			return []
+			return [], ""
 		else:
 			instances_dict = response_describe_instances['Reservations'][0]['Instances'][0]
 			resource_dict = { 'describe_instances': instances_dict }
@@ -95,10 +97,10 @@ def scan_ec2(client, resource_type, resource_name, arn):
 			scan_data_list.append(resource_dict)
 
 	else:
-		return []
+		return [], ""
 
-	# list[list[dict], string]
-	return [scan_data_list, resource_internal_state]
+	# list[dict], string
+	return scan_data_list, resource_internal_state
 
 
 @scanner_aws('glue')
@@ -115,7 +117,7 @@ def scan_glue(client, resource_type, resource_name, arn):
 		response_get_job_runs = client.get_job_runs(JobName=resource_name, MaxResults=1)
 
 		if not response_get_job_runs:
-			return []
+			return [], ""
 		else:
 			get_job_runs_dict = response_get_job_runs['JobRuns'][0]
 			resource_dict = {'get_job_runs': get_job_runs_dict}
@@ -128,7 +130,7 @@ def scan_glue(client, resource_type, resource_name, arn):
 		response_get_workflow_runs = client.get_workflow_runs(Name=resource_name, MaxResults=1, IncludeGraph=False)
 
 		if not response_get_workflow_runs:
-			return []
+			return [], ""
 		else:
 			get_workflow_runs_dict = response_get_workflow_runs['Runs'][0]
 			resource_dict = {'get_workflow_runs': get_workflow_runs_dict}
@@ -136,10 +138,10 @@ def scan_glue(client, resource_type, resource_name, arn):
 			scan_data_list.append(resource_dict)
 
 	else:
-		return []
+		return [], ""
 
-	# list[list[dict], string]
-	return [scan_data_list, resource_internal_state]
+	# list[dict], string
+	return scan_data_list, resource_internal_state
 
 
 @scanner_aws('lambda')
@@ -156,7 +158,7 @@ def scan_lambda(client, resource_type, resource_name, arn):
 		response_get_function = client.get_function(FunctionName=arn, Qualifier='$LATEST')
 
 		if not response_get_function:
-			return []
+			return [], ""
 		else:
 			configuration_dict = response_get_function
 			resource_dict = {'get_function': configuration_dict}
@@ -164,10 +166,10 @@ def scan_lambda(client, resource_type, resource_name, arn):
 			scan_data_list.append(resource_dict)
 
 	else:
-		return []
+		return [], ""
 
-	# list[list[dict], string]
-	return [scan_data_list, resource_internal_state]
+	# list[dict], string
+	return scan_data_list, resource_internal_state
 
 
 @scanner_aws('rds')
@@ -184,7 +186,7 @@ def scan_rds(client, resource_type, resource_name, arn):
 		response_describe_db_clusters = client.describe_db_clusters(DBClusterIdentifier=resource_name, MaxRecords=100)
 
 		if not response_describe_db_clusters:
-			return []
+			return [], ""
 		else:
 			db_clusters_dict = response_describe_db_clusters['DBClusters'][0]
 			resource_dict = {'describe_db_clusters': db_clusters_dict}
@@ -197,7 +199,7 @@ def scan_rds(client, resource_type, resource_name, arn):
 		response_describe_db_instances = client.describe_db_instances(DBInstanceIdentifier=resource_name, MaxRecords=100)
 
 		if not response_describe_db_instances:
-			return []
+			return [], ""
 		else:
 			db_instances_dict = response_describe_db_instances['DBInstances'][0]
 			resource_dict = {'describe_db_instances': db_instances_dict}
@@ -205,10 +207,10 @@ def scan_rds(client, resource_type, resource_name, arn):
 			scan_data_list.append(resource_dict)
 
 	else:
-		return []
+		return [], ""
 
-	# list[list[dict], string]
-	return [scan_data_list, resource_internal_state]
+	# list[dict], string
+	return scan_data_list, resource_internal_state
 
 
 @scanner_aws('redshift')
@@ -225,7 +227,7 @@ def scan_redshift(client, resource_type, resource_name, arn):
 		response_describe_clusters = client.describe_clusters(ClusterIdentifier=resource_name, MaxRecords=100)
 
 		if not response_describe_clusters:
-			return []
+			return [], ""
 		else:
 			clusters_dict = response_describe_clusters['Clusters'][0]
 			resource_dict = {'describe_clusters': clusters_dict}
@@ -233,10 +235,10 @@ def scan_redshift(client, resource_type, resource_name, arn):
 			scan_data_list.append(resource_dict)
 
 	else:
-		return []
+		return [], ""
 
-	# list[list[dict], string]
-	return [scan_data_list, resource_internal_state]
+	# list[dict], string
+	return scan_data_list, resource_internal_state
 
 
 def get_resource_structure(arn, arn_components_list, arn_structure_dict):

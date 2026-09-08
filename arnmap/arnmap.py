@@ -36,12 +36,9 @@ class ArnMap:
 		try:
 	
 			if hasattr(arnmap_helper, method_name) and callable(getattr(arnmap_helper, method_name)):
-				
-				resource_scan = getattr(arnmap_helper, method_name)(arn, arn_components_list, self.arn_structure_dict)
-				
-				scans_list = resource_scan[0]
-				resource_internal_state = resource_scan[1]
-				
+
+				scans_list, resource_internal_state = getattr(arnmap_helper, method_name)(arn, arn_components_list, self.arn_structure_dict)
+
 				if not scans_list:
 					
 					resource_status = "NOT_FOUND"
@@ -74,7 +71,7 @@ class ArnMap:
 					'resource_internal_state': 'UNKNOWN',
 					'scans': scans_list,
 					'scanner_status': str(
-						"ERROR: Method does not exist in helper module or is not callable: ("
+						"ERROR: Method does not exist in helper module or is not callable ("
 						+ method_name
 						+ ")"
 					)
