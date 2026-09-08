@@ -34,6 +34,10 @@ pip install boto3
 pip list
 deactivate
 ```
+## Special Thanks
+```
+Inspired by the legendary Nmap from Fyodor (insecure.org). Not affiliated.
+```
 <!--
 **arnmap/arnmap** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
