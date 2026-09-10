@@ -21,13 +21,21 @@ class ArnMap:
 		"""Get data from boto3 about the given ARN."""
 
 		arn_components_list = self.__verify_arn(arn)
+
+		if not arn_components_list:
+			return {
+				'arn': arn,
+				'resource_status': 'INVALID',
+				'resource_internal_state': 'UNKNOWN',
+				'scans': [],
+				'scanner_status': 'FINISHED'
+			}
 		
 		method_name = (
 			"scan_" 
 			+ str(arn_components_list[self.arn_structure_dict.get("service")])
 		)
 
-		resource_scan = []
 		scans_list = []
 		resource_internal_state = ""
 		resource_status = ""
@@ -37,31 +45,36 @@ class ArnMap:
 	
 			if hasattr(arnmap_helper, method_name) and callable(getattr(arnmap_helper, method_name)):
 
-				scans_list, resource_internal_state = getattr(arnmap_helper, method_name)(arn, arn_components_list, self.arn_structure_dict)
+				scan_result = getattr(arnmap_helper, method_name)(arn, arn_components_list, self.arn_structure_dict)
 
-				if not scans_list:
+				if scan_result is None:
 					
 					resource_status = "NOT_FOUND"
-					
-				elif not resource_internal_state:
-				
-					resource_status = "FOUND"
-				
-				else:
-				
-					resource_status = (
-						"FOUND [" 
-						+ resource_internal_state 
-						+ "]"
-					)
 
-				scan_output_dict = {
-					'arn': arn,
-					'resource_status': resource_status,
-					'resource_internal_state': resource_internal_state,
-					'scans': scans_list,
-					'scanner_status': 'FINISHED'
-				}
+				else:
+
+					scans_list = scan_result.data
+					resource_internal_state = scan_result.state
+
+					if not resource_internal_state:
+
+						resource_status = "FOUND"
+
+					else:
+
+						resource_status = (
+							"FOUND ["
+							+ resource_internal_state
+							+ "]"
+						)
+
+					scan_output_dict = {
+						'arn': arn,
+						'resource_status': resource_status,
+						'resource_internal_state': resource_internal_state,
+						'scans': scans_list,
+						'scanner_status': 'FINISHED'
+					}
 				
 			else:
 
