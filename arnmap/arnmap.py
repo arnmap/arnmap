@@ -33,7 +33,7 @@ class ArnMap:
 		
 		method_name = (
 			"scan_" 
-			+ str(arn_components_list[self.arn_structure_dict.get("service")])
+			+ str(arn_components_list[self.arn_structure_dict["service"]])
 		)
 
 		scans_list = []

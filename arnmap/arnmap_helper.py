@@ -269,23 +269,23 @@ def scan_redshift(client, resource_type, resource_name, arn):
 def get_resource_structure(arn, arn_components_list, arn_structure_dict):
 	"""Get resource_type and resource_name from resource descriptor in the ARN."""
 
-	# prefix:partition:service:region:accountid:resource/resourceid
-	if arn.count(":") == 5:
+	resource = arn_components_list[arn_structure_dict["resource"]]
 
-		resource_structure_dict = {
-			'type': 0,
-			'name': 1
-		}
+	# Handle slash-delimited resources: resource_type/resource_name
+	if "/" in resource:
 
-		resource_list = arn_components_list[arn_structure_dict.get("resource")].split("/")
-		resource_type = resource_list[resource_structure_dict.get("type")]
-		resource_name = resource_list[resource_structure_dict.get("name")]
+		resource_type, resource_name = resource.split("/", 1)
 
-	# prefix:partition:service:region:accountid:resource:resourceid
-	if arn.count(":") == 6:
+	# Handle colon-delimited resources: resource_type:resource_name
+	elif len(arn_components_list) > arn_structure_dict["resourceid"]:
 
-		resource_type = arn_components_list[arn_structure_dict.get("resource")]
-		resource_name = arn_components_list[arn_structure_dict.get("resourceid")]
+		resource_type = resource
+		resource_name = arn_components_list[arn_structure_dict["resourceid"]]
+
+	# Handle resource-only ARNs: resource
+	else:
+
+		resource_type = resource
+		resource_name = resource
 
 	return resource_type, resource_name
-
