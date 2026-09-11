@@ -2,6 +2,8 @@
 
 from . import arnmap_helper
 
+import re
+
 
 class ArnMap:
 
@@ -20,36 +22,39 @@ class ArnMap:
 	def scan(self, arn):
 		"""Get data from boto3 about the given ARN."""
 
-		arn_components_list = self.__verify_arn(arn)
-
-		if not arn_components_list:
-			return {
-				'arn': arn,
-				'resource_status': 'INVALID',
-				'resource_internal_state': 'UNKNOWN',
-				'scans': [],
-				'scanner_status': 'FINISHED'
-			}
-		
-		method_name = (
-			"scan_" 
-			+ str(arn_components_list[self.arn_structure_dict["service"]])
-		)
-
 		scans_list = []
 		resource_internal_state = ""
 		resource_status = ""
 		scan_output_dict = {}
 
+		arn_components_dict = self.__verify_arn(arn)
+
+		if not arn_components_dict:
+			return {
+				'arn': arn,
+				'resource_status': 'UNKNOWN',
+				'resource_internal_state': 'UNKNOWN',
+				'scans': scans_list,
+				'scanner_status': str(
+					"ERROR: Unable to verify ARN format."
+				)
+			}
+
+		method_name = (
+			"scan_"
+			+ str(arn_components_dict["service"])
+		)
+
 		try:
-	
+
 			if hasattr(arnmap_helper, method_name) and callable(getattr(arnmap_helper, method_name)):
 
-				scan_result = getattr(arnmap_helper, method_name)(arn, arn_components_list, self.arn_structure_dict)
+				scan_result = getattr(arnmap_helper, method_name)(arn, arn_components_dict)
 
 				if scan_result is None:
-					
+
 					resource_status = "NOT_FOUND"
+					resource_internal_state = "NOT_FOUND"
 
 				else:
 
@@ -68,14 +73,14 @@ class ArnMap:
 							+ "]"
 						)
 
-					scan_output_dict = {
-						'arn': arn,
-						'resource_status': resource_status,
-						'resource_internal_state': resource_internal_state,
-						'scans': scans_list,
-						'scanner_status': 'FINISHED'
-					}
-				
+				scan_output_dict = {
+					'arn': arn,
+					'resource_status': resource_status,
+					'resource_internal_state': resource_internal_state,
+					'scans': scans_list,
+					'scanner_status': 'FINISHED'
+				}
+
 			else:
 
 				scan_output_dict = {
@@ -107,20 +112,59 @@ class ArnMap:
 			
 		return scan_output_dict
 
-
 	def __verify_arn(self, arn):
-		"""Confirm that arn is correct format and return a parsed list of elements."""
-								
-		if arn.count(":") < 5:
-			return []				
-		
+		"""Confirm that arn is correct format and return a parsed dict of elements."""
+
+		if not isinstance(arn, str):
+			return {}
+
 		components_list = arn.split(":")
-		
-		if components_list[self.arn_structure_dict.get("prefix")] != "arn" or components_list[self.arn_structure_dict.get("partition")] != "aws":
-			return []
-			
-		return components_list
-		
+
+		if len(components_list) < 6:
+			return {}
+
+		arn_dict = {
+			"prefix": components_list[self.arn_structure_dict["prefix"]],
+			"partition": components_list[self.arn_structure_dict["partition"]],
+			"service": components_list[self.arn_structure_dict["service"]],
+			"region": components_list[self.arn_structure_dict["region"]],
+			"accountid": components_list[self.arn_structure_dict["accountid"]],
+			"resource": components_list[self.arn_structure_dict["resource"]],
+			"resourceid": (
+				":".join(components_list[6:])
+				if len(components_list) > 6
+				else None
+			)
+		}
+
+		if arn_dict["prefix"] != "arn":
+			return {}
+
+		valid_partitions = {
+			"aws",
+			"aws-cn",
+			"aws-us-gov",
+			"aws-iso",
+			"aws-iso-b"
+		}
+
+		if arn_dict["partition"] not in valid_partitions:
+			return {}
+
+		if not re.match(r"^[a-z0-9-]+$", arn_dict["service"]):
+			return {}
+
+		if arn_dict["region"] and not re.match(r"[a-z0-9-]+$", arn_dict["region"]):
+			return {}
+
+		if arn_dict["accountid"] and not re.match(r"^\d{12}$", arn_dict["accountid"]):
+			return {}
+
+		if not arn_dict["resource"]:
+			return {}
+
+		return arn_dict
+
 		
 def __main(args):
 	"""Standard main method within the class. Only called when the program is run 
