@@ -19,7 +19,7 @@ def scanner_aws(service_name):
 
 	# Service-specific scanners are responsible for identifying
 	# resource-not-found conditions and returning None.
-	# Other exceptions must propogate to ArnMap.scan().
+	# Other exceptions must propagate to ArnMap.scan().
 	def decorator_scanner(scanner_func):
 
 		@wraps(scanner_func)
@@ -59,7 +59,7 @@ def scan_dms(client, resource_type, resource_name, arn):
 		except client.exceptions.ResourceNotFoundFault:
 			return None
 
-		if not response_describe_replication_tasks:
+		if not response_describe_replication_tasks.get('ReplicationTasks'):
 			return None
 		else:
 			replication_tasks_dict = response_describe_replication_tasks['ReplicationTasks'][0]
@@ -101,7 +101,7 @@ def scan_ec2(client, resource_type, resource_name, arn):
 				return None
 			raise
 
-		if not response_describe_instances:
+		if not response_describe_instances['Reservations'][0].get('Instances'):
 			return None
 		else:
 			instances_dict = response_describe_instances['Reservations'][0]['Instances'][0]
@@ -134,7 +134,7 @@ def scan_glue(client, resource_type, resource_name, arn):
 		except client.exceptions.EntityNotFoundException:
 			return None
 
-		if not response_get_job_runs:
+		if not response_get_job_runs.get('JobRuns'):
 			return None
 		else:
 			get_job_runs_dict = response_get_job_runs['JobRuns'][0]
@@ -157,7 +157,7 @@ def scan_glue(client, resource_type, resource_name, arn):
 		except client.exceptions.EntityNotFoundException:
 			return None
 
-		if not response_get_workflow_runs:
+		if not response_get_workflow_runs.get('Runs'):
 			return None
 		else:
 			get_workflow_runs_dict = response_get_workflow_runs['Runs'][0]
@@ -190,7 +190,7 @@ def scan_lambda(client, resource_type, resource_name, arn):
 		except client.exceptions.ResourceNotFoundException:
 			return None
 
-		if not response_get_function:
+		if not response_get_function.get('Configuration'):
 			return None
 		else:
 			configuration_dict = response_get_function
@@ -223,7 +223,7 @@ def scan_rds(client, resource_type, resource_name, arn):
 		except client.exceptions.DBClusterNotFoundFault:
 			return None
 
-		if not response_describe_db_clusters:
+		if not response_describe_db_clusters.get('DBClusters'):
 			return None
 		else:
 			db_clusters_dict = response_describe_db_clusters['DBClusters'][0]
@@ -247,7 +247,7 @@ def scan_rds(client, resource_type, resource_name, arn):
 		except client.exceptions.DBInstanceNotFoundFault:
 			return None
 
-		if not response_describe_db_instances:
+		if not response_describe_db_instances.get('DBInstances'):
 			return None
 		else:
 			db_instances_dict = response_describe_db_instances['DBInstances'][0]
@@ -281,7 +281,7 @@ def scan_redshift(client, resource_type, resource_name, arn):
 		except client.exceptions.ClusterNotFoundFault:
 			return None
 
-		if not response_describe_clusters:
+		if not response_describe_clusters.get('Clusters'):
 			return None
 		else:
 			clusters_dict = response_describe_clusters['Clusters'][0]

@@ -8,7 +8,7 @@ import re
 class ArnMap:
 
 	def __init__(self):
-		
+
 		self.arn_structure_dict = {
 			'prefix': 0,
 			'partition': 1,
@@ -41,15 +41,17 @@ class ArnMap:
 			}
 
 		method_name = (
-			"scan_"
-			+ str(arn_components_dict["service"])
+				"scan_"
+				+ str(arn_components_dict["service"])
 		)
 
 		try:
 
-			if hasattr(arnmap_helper, method_name) and callable(getattr(arnmap_helper, method_name)):
+			scanner = getattr(arnmap_helper, method_name, None)
 
-				scan_result = getattr(arnmap_helper, method_name)(arn, arn_components_dict)
+			if callable(scanner):
+
+				scan_result = scanner(arn, arn_components_dict)
 
 				if scan_result is None:
 
@@ -68,9 +70,9 @@ class ArnMap:
 					else:
 
 						resource_status = (
-							"FOUND ["
-							+ resource_internal_state
-							+ "]"
+								"FOUND ["
+								+ resource_internal_state
+								+ "]"
 						)
 
 				scan_output_dict = {
@@ -94,7 +96,7 @@ class ArnMap:
 						+ ")"
 					)
 				}
-			
+
 		except Exception as e:
 
 			scan_output_dict = {
@@ -109,7 +111,7 @@ class ArnMap:
 					+ str(e)
 				)
 			}
-			
+
 		return scan_output_dict
 
 	def __verify_arn(self, arn):
@@ -165,9 +167,9 @@ class ArnMap:
 
 		return arn_dict
 
-		
+
 def __main(args):
-	"""Standard main method within the class. Only called when the program is run 
+	"""Standard main method within the class. Only called when the program is run
 	directly. Allows execution of code related to the class while still being able
 	to import the class in other modules without execution of the main method.
 	"""
@@ -180,7 +182,8 @@ def __main(args):
 
 if __name__ == "__main__":
 	import argparse
+
 	parser = argparse.ArgumentParser(description='Scan AWS resources by ARN.')
 	parser.add_argument('--arn', nargs='+', help='List of ARN: "arn1" "arn2" ...', required=True)
 	args = parser.parse_args()
-	__main(args)		
+	__main(args)
