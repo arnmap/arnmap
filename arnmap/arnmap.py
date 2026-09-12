@@ -54,7 +54,7 @@ class ArnMap:
 				if scan_result is None:
 
 					resource_status = "NOT_FOUND"
-					resource_internal_state = "NOT_FOUND"
+					resource_internal_state = "UNKNOWN"
 
 				else:
 
@@ -151,10 +151,10 @@ class ArnMap:
 		if arn_dict["partition"] not in valid_partitions:
 			return {}
 
-		if not re.match(r"^[a-z0-9-]+$", arn_dict["service"]):
+		if not re.fullmatch(r"[a-z0-9-]+", arn_dict["service"]):
 			return {}
 
-		if arn_dict["region"] and not re.match(r"[a-z0-9-]+$", arn_dict["region"]):
+		if arn_dict["region"] and not re.fullmatch(r"[a-z0-9-]+", arn_dict["region"]):
 			return {}
 
 		if arn_dict["accountid"] and not re.match(r"^\d{12}$", arn_dict["accountid"]):

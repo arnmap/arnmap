@@ -15,14 +15,17 @@ class ScanResult:
 
 
 def scanner_aws(service_name):
-	"""Decorator to handle generic client setup and error handling."""
+	"""Decorator to handle generic client setup."""
 
+	# Service-specific scanners are responsible for identifying
+	# resource-not-found conditions and returning None.
+	# Other exceptions must propogate to ArnMap.scan().
 	def decorator_scanner(scanner_func):
 
 		@wraps(scanner_func)
 		def wrapper_scanner(arn, arn_components_dict):
 
-			resource_type, resource_name = get_resource_structure(arn, arn_components_dict)
+			resource_type, resource_name = get_resource_structure(arn_components_dict)
 			session = boto3.Session(region_name=arn_components_dict["region"])
 			client = session.client(service_name)
 			return scanner_func(client, resource_type, resource_name, arn)
@@ -53,7 +56,7 @@ def scan_dms(client, resource_type, resource_name, arn):
 				MaxRecords=20
 			)
 
-		except client.exceptions.ResourceNotFoundFault as e:
+		except client.exceptions.ResourceNotFoundFault:
 			return None
 
 		if not response_describe_replication_tasks:
@@ -93,6 +96,7 @@ def scan_ec2(client, resource_type, resource_name, arn):
 
 			error_code = e.response["Error"]["Code"]
 
+			# Only treat a confirmed missing instance as NOT_FOUND
 			if error_code == "InvalidInstanceID.NotFound":
 				return None
 			raise
@@ -127,7 +131,7 @@ def scan_glue(client, resource_type, resource_name, arn):
 
 			response_get_job_runs = client.get_job_runs(JobName=resource_name, MaxResults=1)
 
-		except client.exceptions.EntityNotFoundException as e:
+		except client.exceptions.EntityNotFoundException:
 			return None
 
 		if not response_get_job_runs:
@@ -150,7 +154,7 @@ def scan_glue(client, resource_type, resource_name, arn):
 
 			response_get_workflow_runs = client.get_workflow_runs(Name=resource_name, MaxResults=1, IncludeGraph=False)
 
-		except client.exceptions.EntityNotFoundException as e:
+		except client.exceptions.EntityNotFoundException:
 			return None
 
 		if not response_get_workflow_runs:
@@ -183,7 +187,7 @@ def scan_lambda(client, resource_type, resource_name, arn):
 
 			response_get_function = client.get_function(FunctionName=arn, Qualifier='$LATEST')
 
-		except client.exceptions.ResourceNotFoundException as e:
+		except client.exceptions.ResourceNotFoundException:
 			return None
 
 		if not response_get_function:
@@ -216,7 +220,7 @@ def scan_rds(client, resource_type, resource_name, arn):
 
 			response_describe_db_clusters = client.describe_db_clusters(DBClusterIdentifier=resource_name, MaxRecords=100)
 
-		except client.exceptions.DBClusterNotFoundFault as e:
+		except client.exceptions.DBClusterNotFoundFault:
 			return None
 
 		if not response_describe_db_clusters:
@@ -240,7 +244,7 @@ def scan_rds(client, resource_type, resource_name, arn):
 
 			response_describe_db_instances = client.describe_db_instances(DBInstanceIdentifier=resource_name, MaxRecords=100)
 
-		except client.exceptions.DBInstanceNotFoundFault as e:
+		except client.exceptions.DBInstanceNotFoundFault:
 			return None
 
 		if not response_describe_db_instances:
@@ -274,7 +278,7 @@ def scan_redshift(client, resource_type, resource_name, arn):
 
 			response_describe_clusters = client.describe_clusters(ClusterIdentifier=resource_name, MaxRecords=100)
 
-		except client.exceptions.ClusterNotFoundFault as e:
+		except client.exceptions.ClusterNotFoundFault:
 			return None
 
 		if not response_describe_clusters:
@@ -295,7 +299,7 @@ def scan_redshift(client, resource_type, resource_name, arn):
 		return None
 
 
-def get_resource_structure(arn, arn_components_dict):
+def get_resource_structure(arn_components_dict):
 	"""Get resource_type and resource_name from resource descriptor in the ARN."""
 
 	resource = arn_components_dict["resource"]
