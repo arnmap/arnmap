@@ -181,6 +181,6 @@ def __main(args):
 if __name__ == "__main__":
 	import argparse
 	parser = argparse.ArgumentParser(description='Scan AWS resources by ARN.')
-	parser.add_argument('--arn', nargs='*', help='List of ARN: "arn1" "arn2" ...', default=[], required=True)
+	parser.add_argument('--arn', nargs='+', help='List of ARN: "arn1" "arn2" ...', required=True)
 	args = parser.parse_args()
 	__main(args)		
