@@ -23,18 +23,9 @@ def scanner_aws(service_name):
 		def wrapper_scanner(arn, arn_components_dict):
 
 			resource_type, resource_name = get_resource_structure(arn, arn_components_dict)
-
-			try:
-
-				session = boto3.Session(region_name=arn_components_dict["region"])
-				client = session.client(service_name)
-				return scanner_func(client, resource_type, resource_name, arn)
-
-			except ClientError as e:
-				return None
-
-			except Exception as e:
-				return None
+			session = boto3.Session(region_name=arn_components_dict["region"])
+			client = session.client(service_name)
+			return scanner_func(client, resource_type, resource_name, arn)
 
 		return wrapper_scanner
 
@@ -63,12 +54,6 @@ def scan_dms(client, resource_type, resource_name, arn):
 			)
 
 		except client.exceptions.ResourceNotFoundFault as e:
-			return None
-
-		except ClientError as e:
-			return None
-
-		except Exception as e:
 			return None
 
 		if not response_describe_replication_tasks:
@@ -105,10 +90,12 @@ def scan_ec2(client, resource_type, resource_name, arn):
 			)
 
 		except ClientError as e:
-			return None
 
-		except Exception as e:
-			return None
+			error_code = e.response["Error"]["Code"]
+
+			if error_code == "InvalidInstanceID.NotFound":
+				return None
+			raise
 
 		if not response_describe_instances:
 			return None
@@ -143,12 +130,6 @@ def scan_glue(client, resource_type, resource_name, arn):
 		except client.exceptions.EntityNotFoundException as e:
 			return None
 
-		except ClientError as e:
-			return None
-
-		except Exception as e:
-			return None
-
 		if not response_get_job_runs:
 			return None
 		else:
@@ -170,12 +151,6 @@ def scan_glue(client, resource_type, resource_name, arn):
 			response_get_workflow_runs = client.get_workflow_runs(Name=resource_name, MaxResults=1, IncludeGraph=False)
 
 		except client.exceptions.EntityNotFoundException as e:
-			return None
-
-		except ClientError as e:
-			return None
-
-		except Exception as e:
 			return None
 
 		if not response_get_workflow_runs:
@@ -211,12 +186,6 @@ def scan_lambda(client, resource_type, resource_name, arn):
 		except client.exceptions.ResourceNotFoundException as e:
 			return None
 
-		except ClientError as e:
-			return None
-
-		except Exception as e:
-			return None
-
 		if not response_get_function:
 			return None
 		else:
@@ -250,12 +219,6 @@ def scan_rds(client, resource_type, resource_name, arn):
 		except client.exceptions.DBClusterNotFoundFault as e:
 			return None
 
-		except ClientError as e:
-			return None
-
-		except Exception as e:
-			return None
-
 		if not response_describe_db_clusters:
 			return None
 		else:
@@ -278,12 +241,6 @@ def scan_rds(client, resource_type, resource_name, arn):
 			response_describe_db_instances = client.describe_db_instances(DBInstanceIdentifier=resource_name, MaxRecords=100)
 
 		except client.exceptions.DBInstanceNotFoundFault as e:
-			return None
-
-		except ClientError as e:
-			return None
-
-		except Exception as e:
 			return None
 
 		if not response_describe_db_instances:
@@ -318,12 +275,6 @@ def scan_redshift(client, resource_type, resource_name, arn):
 			response_describe_clusters = client.describe_clusters(ClusterIdentifier=resource_name, MaxRecords=100)
 
 		except client.exceptions.ClusterNotFoundFault as e:
-			return None
-
-		except ClientError as e:
-			return None
-
-		except Exception as e:
 			return None
 
 		if not response_describe_clusters:
