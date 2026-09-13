@@ -101,6 +101,9 @@ def scan_ec2(client, resource_type, resource_name, arn):
 				return None
 			raise
 
+		if not response_describe_instances['Reservations']:
+			return None
+
 		if not response_describe_instances['Reservations'][0].get('Instances'):
 			return None
 		else:
@@ -126,13 +129,32 @@ def scan_glue(client, resource_type, resource_name, arn):
 
 	if resource_type == "job":
 
-		# Scan 1: get_job_runs (only return most recent job run)
+		# Scan 1: get_job (determine existence)
+		try:
+
+			response_get_job = client.get_job(JobName=resource_name)
+
+		except client.exceptions.EntityNotFoundException:
+			return None
+
+		if not response_get_job.get('Job'):
+			return None
+		else:
+			get_job_dict = response_get_job['Job']
+			scan_data_list.append({
+				'get_job': get_job_dict
+			})
+
+		# Scan 2: get_job_runs (only return most recent job run)
 		try:
 
 			response_get_job_runs = client.get_job_runs(JobName=resource_name, MaxResults=1)
 
 		except client.exceptions.EntityNotFoundException:
-			return None
+			return ScanResult(
+				data=scan_data_list,
+				state='UNKNOWN'
+			)
 
 		if not response_get_job_runs.get('JobRuns'):
 			return None
@@ -149,13 +171,32 @@ def scan_glue(client, resource_type, resource_name, arn):
 
 	elif resource_type == "workflow":
 
-		# Scan 1: get_workflow_runs (only return most recent workflow run)
+		# Scan 1: get_workflow (determine existence)
+		try:
+
+			response_get_workflow = client.get_workflow(IncludeGraph=False, Name=resource_name)
+
+		except client.exceptions.EntityNotFoundException:
+			return None
+
+		if not response_get_workflow.get('Workflow'):
+			return None
+		else:
+			get_workflow_dict = response_get_workflow['Workflow']
+			scan_data_list.append({
+				'get_workflow': get_workflow_dict
+			})
+
+		# Scan 2: get_workflow_runs (only return most recent workflow run)
 		try:
 
 			response_get_workflow_runs = client.get_workflow_runs(Name=resource_name, MaxResults=1, IncludeGraph=False)
 
 		except client.exceptions.EntityNotFoundException:
-			return None
+			return ScanResult(
+				data=scan_data_list,
+				state='UNKNOWN'
+			)
 
 		if not response_get_workflow_runs.get('Runs'):
 			return None

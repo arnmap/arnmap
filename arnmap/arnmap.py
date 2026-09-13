@@ -142,15 +142,7 @@ class ArnMap:
 		if arn_dict["prefix"] != "arn":
 			return {}
 
-		valid_partitions = {
-			"aws",
-			"aws-cn",
-			"aws-us-gov",
-			"aws-iso",
-			"aws-iso-b"
-		}
-
-		if arn_dict["partition"] not in valid_partitions:
+		if not re.fullmatch(r"aws(?:-[a-z0-9-]+)?", arn_dict["partition"]):
 			return {}
 
 		if not re.fullmatch(r"[a-z0-9-]+", arn_dict["service"]):
