@@ -146,7 +146,7 @@ class ArnMap:
 		# 	return {}
 
 		if not re.fullmatch(
-			r"aws(?:-[a-z0-9-]+(?:-[a-z0-9]+)*)?",
+			r"aws(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?",
 			arn_dict["partition"]
 		):
 			return {}
@@ -157,7 +157,10 @@ class ArnMap:
 		if arn_dict["region"] and not re.fullmatch(r"[a-z0-9-]+", arn_dict["region"]):
 			return {}
 
-		if arn_dict["accountid"] and not re.match(r"^\d{12}$", arn_dict["accountid"]):
+		if arn_dict["accountid"] and not re.fullmatch(
+			r"\d{12}",
+			arn_dict["accountid"]
+		):
 			return {}
 
 		if not arn_dict["resource"]:
