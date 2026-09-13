@@ -157,7 +157,10 @@ def scan_glue(client, resource_type, resource_name, arn):
 			)
 
 		if not response_get_job_runs.get('JobRuns'):
-			return None
+			return ScanResult(
+				data=scan_data_list,
+				state='UNKNOWN'
+			)
 		else:
 			get_job_runs_dict = response_get_job_runs['JobRuns'][0]
 			scan_data_list.append({
@@ -199,7 +202,10 @@ def scan_glue(client, resource_type, resource_name, arn):
 			)
 
 		if not response_get_workflow_runs.get('Runs'):
-			return None
+			return ScanResult(
+				data=scan_data_list,
+				state='UNKNOWN'
+			)
 		else:
 			get_workflow_runs_dict = response_get_workflow_runs['Runs'][0]
 			scan_data_list.append({

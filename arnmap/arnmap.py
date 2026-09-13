@@ -142,7 +142,13 @@ class ArnMap:
 		if arn_dict["prefix"] != "arn":
 			return {}
 
-		if not re.fullmatch(r"aws(?:-[a-z0-9-]+)?", arn_dict["partition"]):
+		# if not re.fullmatch(r"aws(?:-[a-z0-9-]+)?", arn_dict["partition"]):
+		# 	return {}
+
+		if not re.fullmatch(
+			r"aws(?:-[a-z0-9-]+(?:-[a-z0-9]+)*)?",
+			arn_dict["partition"]
+		):
 			return {}
 
 		if not re.fullmatch(r"[a-z0-9-]+", arn_dict["service"]):
