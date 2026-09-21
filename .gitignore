@@ -1,0 +1,66 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging/build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test and coverage output
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Type checking / linting caches
+.mypy_cache/
+.ruff_cache/
+.pyright/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment/config secrets
+.env
+.env.*
+!.env.example
+
+# AWS credentials/configuration
+.aws/
+.aws/credentials
+.aws/config
+
+# Local logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+*.temp
+
+# Integration test local overrides
+tests/integration/.env
+tests/integration/*.local
+
+# Generated documentation/site output
+site/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
