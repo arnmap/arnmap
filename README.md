@@ -1,8 +1,10 @@
-```bash
- _______  ______ __   _ _______ _______  _____ 
+```text
+ _______  ______ __   _ _______ _______  _____
  |_____| |_____/ | \  | |  |  | |_____| |_____]
- |     | |    \_ |  \_| |  |  | |     | |      
-```                                      
+ |     | |    \_ |  \_| |  |  | |     | |
+```
+
+# arnmap
 
 `arnmap` is a Python utility for identifying AWS resources from Amazon Resource Names (ARNs).
 
@@ -18,14 +20,28 @@ A confirmed missing resource is reported as `NOT_FOUND`; other AWS failures rema
 
 ## Usage
 
-```bash
-# Run as a package module
-$ python -m arnmap.arnmap
-usage: arnmap.py [-h] --arn [ARN ...]
+### Run as a package module
 
-# Run using wrapper program
-$ python arnmap-exec.py
-usage: arnmap-exec.py [-h] --arn [ARN ...]
+```bash
+python -m arnmap.arnmap --arn "arn:aws:ec2:us-east-1:123456789012:instance/i-example"
+```
+
+The module accepts one or more ARNs:
+
+```bash
+python -m arnmap.arnmap --arn "arn1" "arn2" "arn3"
+```
+
+### Run using the wrapper program
+
+```bash
+python arnmap-exec.py --arn "arn:aws:ec2:us-east-1:123456789012:instance/i-example"
+```
+
+The wrapper also accepts multiple ARNs:
+
+```bash
+python arnmap-exec.py --arn "arn1" "arn2"
 ```
 
 ## Requirements
@@ -45,7 +61,7 @@ git clone https://github.com/arnmap/arnmap.git
 cd arnmap
 ```
 
-Create a virtual environment:
+Create the project's virtual environment named `arnmap`:
 
 ```bash
 python3 -m venv arnmap
@@ -73,12 +89,19 @@ arnmap/
 │   ├── arnmap.py
 │   └── arnmap_helper.py
 │
+├── scripts/
+│   └── run_aws_integration_tests.sh
+│
 ├── tests/
 │   ├── __init__.py
-│   ├── unit/
+│   ├── conftest.py
+│   ├── test_arn_validation.py
+│   ├── test_arnmap_scan.py
+│   ├── test_scanners.py
 │   └── integration/
 │       ├── __init__.py
 │       ├── conftest.py
+│       ├── README.md
 │       ├── test_dms.py
 │       ├── test_ec2.py
 │       ├── test_glue.py
@@ -86,8 +109,9 @@ arnmap/
 │       ├── test_rds.py
 │       └── test_redshift.py
 │
-├── .gitignore
+├── arnmap-exec.py
 ├── .env.example
+├── .gitignore
 ├── pytest.ini
 ├── requirements.txt
 ├── requirements-dev.txt
@@ -95,6 +119,20 @@ arnmap/
 ```
 
 The outer `arnmap/` directory is the project root. The inner `arnmap/` directory is the Python package.
+
+### Directory overview
+
+| Path | Purpose |
+|---|---|
+| `arnmap/` | Main Python package and scanning implementation |
+| `scripts/` | Developer/CI helper scripts |
+| `tests/` | Unit tests and shared pytest configuration |
+| `tests/integration/` | Opt-in tests that connect to real AWS resources |
+| `arnmap-exec.py` | Command-line wrapper for scanning ARNs |
+| `.env.example` | Template for local integration-test configuration |
+| `pytest.ini` | Pytest configuration and integration-test marker |
+| `requirements.txt` | Production dependencies |
+| `requirements-dev.txt` | Development and testing dependencies |
 
 ## AWS Credentials
 
@@ -120,11 +158,11 @@ Then select the profile for the current shell:
 export AWS_PROFILE=arnmap-test
 ```
 
-The integration test suite is deliberately designed to avoid silently using whatever AWS credentials happen to be installed on a developer's machine.
+AWS credentials should remain in the AWS credential/profile configuration rather than being placed in `.env`.
 
 ## Environment Configuration
 
-The repository contains `.env.example` as a template for local test/resource configuration.
+The repository contains `.env.example` as a template for local integration-test configuration.
 
 Copy it:
 
@@ -140,7 +178,7 @@ nano .env
 
 The actual `.env` file is ignored by Git and must not be committed.
 
-AWS credentials should remain in the AWS credential/profile configuration rather than being placed in `.env`.
+Do not put AWS access keys, secret keys, session tokens, passwords, or other credentials in `.env`.
 
 ### Loading `.env` on Linux
 
@@ -160,62 +198,81 @@ echo "$ARNMAP_TEST_ACCOUNT_ID"
 
 ## Testing
 
-### Unit Tests
+The project uses `pytest`.
 
-Unit tests do not require AWS credentials and should not make AWS API calls.
+### Normal test suite
 
-Run:
+The normal test command runs the unit tests and excludes tests marked `integration`:
 
 ```bash
 pytest
 ```
 
-Normal `pytest` execution excludes the AWS integration tests.
-
-The normal test run is intended to be safe:
+Normal test execution is intended to be safe:
 
 - no AWS credentials are required
 - no AWS API calls are made
 - no AWS resources are created
 
-### Integration Tests
+The unit tests are located directly under `tests/`:
 
-The integration suite is strictly opt-in.
+```text
+tests/
+├── test_arn_validation.py
+├── test_arnmap_scan.py
+└── test_scanners.py
+```
+
+### AWS integration tests
+
+The AWS integration suite is strictly opt-in.
 
 Integration tests use real AWS APIs against existing AWS resources. They do not create or delete AWS resources.
 
-Before running them, configure the required AWS profile and test-resource environment variables.
+The integration tests are located under:
+
+```text
+tests/integration/
+```
+
+You can run them directly with:
+
+```bash
+pytest -m integration
+```
+
+Or use the project helper script:
+
+```bash
+./scripts/run_aws_integration_tests.sh
+```
+
+The helper script enables the integration-test environment and invokes:
+
+```bash
+pytest -m integration
+```
+
+The script accepts additional pytest arguments. For example:
+
+```bash
+./scripts/run_aws_integration_tests.sh -v
+```
+
+Before running integration tests, configure the required AWS profile and test-resource environment variables.
 
 The integration suite verifies the authenticated AWS account before running resource tests. If the configured profile points to the wrong account, the tests fail rather than continuing against the wrong environment.
 
-Load the local environment configuration:
-
-```bash
-set -a
-source .env
-set +a
-```
-
-Select the test AWS profile:
-
-```bash
-export AWS_PROFILE=arnmap-test
-```
-
-Then run:
-
-```bash
-pytest tests/integration/
-```
-
-### Integration Test Safety
+## Integration Test Safety
 
 There are two deliberate safeguards:
 
-1. Integration tests are excluded from normal `pytest` execution.
-2. The integration `conftest.py` requires explicit integration-test configuration before allowing the tests to run.
+1. Normal `pytest` execution excludes integration tests.
+2. Integration tests require explicit integration-test configuration.
 
 This prevents accidental AWS API calls during normal development.
+
+The integration helper script is intentionally separate from the normal test command so that AWS-connected tests must be explicitly requested.
 
 ## Integration Test Resources
 
@@ -271,10 +328,16 @@ Install development dependencies:
 pip install -r requirements-dev.txt
 ```
 
-Run the unit test suite:
+Run the normal test suite:
 
 ```bash
 pytest
+```
+
+Run the AWS integration suite explicitly when an appropriately configured AWS test environment is available:
+
+```bash
+./scripts/run_aws_integration_tests.sh
 ```
 
 Before submitting changes, verify that:
@@ -284,6 +347,7 @@ Before submitting changes, verify that:
 - no AWS credentials are committed
 - no generated files or virtual environments are committed
 - dependency changes are reflected in the appropriate requirements file
+- changes to AWS behavior are covered by appropriate tests
 
 ## Security
 
@@ -310,7 +374,11 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 software and associated documentation files (the "Software"), to deal in the Software
 without restriction, including without limitation the rights to use, copy, modify,
 merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so.
+permit persons to whom the Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be included in all copies
+or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -329,6 +397,6 @@ Keep AWS integration tests read-only and avoid adding tests that create or delet
 
 ## Special Thanks
 
-```bash
+```text
 Inspired by the legendary Nmap from Fyodor (insecure.org). Not affiliated.
 ```
