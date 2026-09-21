@@ -285,22 +285,6 @@ Before submitting changes, verify that:
 - no generated files or virtual environments are committed
 - dependency changes are reflected in the appropriate requirements file
 
-## Production Readiness
-
-Before deploying a release, verify:
-
-- [ ] Python version meets the supported minimum
-- [ ] `boto3` and `botocore` versions are pinned appropriately
-- [ ] production IAM permissions have been reviewed
-- [ ] unit tests run automatically in CI
-- [ ] integration tests are kept separate from normal CI
-- [ ] AWS throttling/transient failure behavior has been tested
-- [ ] regionless/global AWS services behave correctly
-- [ ] Lambda `$LATEST` behavior is intentional
-- [ ] package/CLI execution has been verified
-- [ ] the release is tagged/versioned
-- [ ] structured logging is available where appropriate
-
 ## Security
 
 Never commit:
